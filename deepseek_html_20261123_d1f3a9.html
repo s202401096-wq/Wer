@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>夢女與夢角 · 字卡傳訊</title>
+<style>
+:root{
+  --bg:#f1f4f0;--panel:#ffffff;--text:#2f332f;--text-sub:#8f968f;
+  --user-bubble:#95ec69;--user-text:#1f2a1a;--dream-bubble:#ffffff;--dream-text:#2f332f;
+  --btn:#4f9a4f;--btn-text:#fff;--input-bg:#eef1ed;--input-text:#2f332f;
+  --avatar-border:#dfe4dd;--typing-bg:#eef1ed;--typing-text:#8f968f;
+  --nav-bg:#f7faf6;--divider:#e4e9e2;--accent:#4f9a4f;
+  --tarot-bg:#e9efe6;--tarot-card:#ffffff;--tarot-accent:#4f9a4f;--tarot-gold:#c9a35c;--tarot-text:#2f332f;
+  --app-font:system-ui,-apple-system,sans-serif;
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:var(--app-font);
+  background:var(--bg);color:var(--text);overscroll-behavior:none;
+  font-size:15px;line-height:1.45;
+}
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;padding-top:var(--safe-t);padding-bottom:var(--safe-b);position:relative;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;touch-action:manipulation;}
+input,textarea{font-family:inherit;font-size:16px;touch-action:manipulation;}
+input:focus,textarea:focus{outline:none;}
+.hidden{display:none!important;}
+
+/* ===== 导航栏 ===== */
+#nav{
+  height:56px;min-height:56px;display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:var(--nav-bg);border-bottom:1px solid var(--divider);z-index:20;
+}
+#nav .nav-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0;}
+#nav .nav-back:active{background:var(--input-bg);}
+#nav .nav-title{font-size:17px;font-weight:600;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#nav .nav-account{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-sub);max-width:90px;}
+#nav .nav-account span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#nav .dot{width:8px;height:8px;border-radius:50%;background:#6fbf73;flex-shrink:0;}
+
+/* ===== 页面容器 ===== */
+.page{flex:1;overflow:hidden;display:none;flex-direction:column;position:relative;}
+.page.active{display:flex;}
+
+/* ===== 主頁 (Me) ===== */
+#pageMe{background:#f7f7f7;overflow-y:auto;}
+.me-header{
+  background:#fff;padding:30px 20px;display:flex;align-items:center;gap:16px;
+  border-bottom:1px solid #eee;margin-bottom:12px;cursor:pointer;
+}
+.me-avatar{width:64px;height:64px;border-radius:12px;overflow:hidden;background:#e0e0e0;flex-shrink:0;}
+.me-avatar img{width:100%;height:100%;object-fit:cover;}
+.me-info{flex:1;min-width:0;}
+.me-name{font-size:20px;font-weight:600;color:#111;margin-bottom:4px;}
+.me-sign{font-size:13px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.me-menu{background:#fff;}
+.me-item{
+  display:flex;align-items:center;gap:14px;padding:16px 20px;
+  border-bottom:1px solid #eee;font-size:16px;color:#333;cursor:pointer;
+}
+.me-item:active{background:#f0f0f0;}
+.me-item:last-child{border-bottom:none;}
+.me-item svg{width:22px;height:22px;color:#555;flex-shrink:0;}
+.me-item .badge{
+  background:#ff3b30;color:#fff;font-size:11px;padding:1px 6px;border-radius:10px;margin-left:auto;
+}
+.me-btn-start{
+  margin:20px;padding:14px;background:var(--btn);color:#fff;
+  border-radius:12px;text-align:center;font-size:17px;font-weight:600;cursor:pointer;
+}
+.me-btn-start:active{opacity:.8;}
+
+/* ===== 聊天页 ===== */
+#pageChat{background:var(--bg);}
+#chatTop{
+  display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--nav-bg);
+  border-bottom:1px solid var(--divider);
+}
+.top-avatar{width:46px;height:46px;border-radius:50%;overflow:hidden;border:1px solid var(--avatar-border);background:var(--input-bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.top-avatar img{width:100%;height:100%;object-fit:cover;}
+.top-avatar .ph{font-size:18px;color:var(--text-sub);}
+.top-name{font-size:12px;color:var(--text-sub);max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;margin-top:2px;}
+.top-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0;cursor:pointer;}
+.top-heart{flex-shrink:0;}
+.func-strip{display:flex;gap:6px;margin-left:auto;align-items:center;flex-shrink:0;}
+.func-btn{
+  width:24px;height:24px;border-radius:50%;background:var(--input-bg);color:var(--btn);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.func-btn:active{transform:scale(.9);}
+.func-btn svg{width:14px;height:14px;}
+
+#msgList{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 8px;
+  background-color: var(--bg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-blend-mode: multiply;
+  background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85));
+}
+body.is-dark-bg #msgList {
+  background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7));
+}
+
+.day-divider{text-align:center;color:var(--text-sub);font-size:11.5px;margin:14px 0 10px;}
+.sys-msg{text-align:center;margin:10px 0;}
+.sys-msg span{display:inline-block;background:rgba(128,128,128,.14);color:var(--text-sub);font-size:12px;padding:4px 12px;border-radius:12px;}
+
+.msg-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;}
+.msg-row.user{flex-direction:row-reverse;}
+.msg-avatar{width:34px;height:34px;border-radius:50%;overflow:hidden;background:var(--input-bg);border:1px solid var(--avatar-border);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.msg-avatar img{width:100%;height:100%;object-fit:cover;}
+.msg-avatar .ph{font-size:15px;color:var(--text-sub);}
+.msg-body{max-width:72%;display:flex;flex-direction:column;}
+.msg-row.user .msg-body{align-items:flex-end;}
+.msg-meta{font-size:11px;color:var(--text-sub);margin-bottom:3px;display:flex;gap:6px;align-items:center;}
+.msg-row.user .msg-meta{flex-direction:row-reverse;}
+.bubble{
+  position:relative;padding:8px 12px;border-radius:14px;font-size:14.5px;word-break:break-word;
+  white-space:pre-wrap;line-height:1.5;
+}
+.msg-row.dream .bubble{background:var(--dream-bubble);color:var(--dream-text);border-top-left-radius:4px;}
+.msg-row.user .bubble{background:var(--user-bubble);color:var(--user-text);border-top-right-radius:4px;}
+body.shape-tail .msg-row.dream .bubble::after{content:"";position:absolute;left:-6px;top:8px;width:0;height:0;border-top:6px solid transparent;border-bottom:0 solid transparent;border-right:7px solid var(--dream-bubble);z-index:-1;}
+body.shape-tail .msg-row.user .bubble::after{content:"";position:absolute;right:-6px;top:8px;width:0;height:0;border-top:6px solid transparent;border-left:7px solid var(--user-bubble);z-index:-1;}
+body.shape-round .bubble{border-radius:18px!important;}
+body.shape-capsule .bubble{border-radius:22px!important;}
+body.shape-rect .bubble{border-radius:6px!important;}
+.star-deco{position:absolute;top:-7px;right:-5px;width:14px;height:14px;color:var(--accent);}
+.quote-block{border-left:3px solid var(--accent);padding:4px 8px;margin-bottom:5px;font-size:12.5px;color:var(--text-sub);background:rgba(128,128,128,.08);border-radius:4px;}
+.msg-img{max-width:180px;max-height:180px;border-radius:10px;display:block;}
+.msg-sticker{width:110px;height:110px;object-fit:contain;display:block;}
+.msg-status{font-size:10.5px;color:var(--text-sub);margin-top:3px;}
+.concat-badge{display:inline-block;font-size:10px;color:var(--text-sub);margin-top:4px;background:rgba(128,128,128,.08);padding:1px 6px;border-radius:6px;}
+
+.typing-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;}
+.typing-box{background:var(--typing-bg);color:var(--typing-text);padding:9px 14px;border-radius:14px;border-top-left-radius:4px;font-size:13.5px;display:flex;align-items:center;gap:6px;}
+.typing-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--typing-text);margin:0 1px;animation:blink 1.2s infinite;}
+.typing-dots span:nth-child(2){animation-delay:.2s;}
+.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+.survey-card{background:var(--panel);border:1px solid var(--divider);border-radius:14px;padding:12px;min-width:200px;max-width:260px;}
+.survey-title{font-weight:600;font-size:14px;margin-bottom:8px;}
+.survey-opt{padding:7px 10px;border-radius:9px;background:var(--input-bg);margin-bottom:6px;font-size:13.5px;}
+.survey-opt.picked{background:var(--user-bubble);color:var(--user-text);font-weight:600;}
+.survey-result{font-size:12px;color:var(--accent);margin-top:4px;}
+
+#inputBar{
+  display:flex;align-items:flex-end;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));
+  background:var(--nav-bg);border-top:1px solid var(--divider);
+}
+.ib-btn{width:38px;height:38px;border-radius:50%;background:var(--input-bg);color:var(--btn);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ib-btn:active{transform:scale(.92);}
+.ib-btn svg{width:20px;height:20px;}
+#msgInput{
+  flex:1;min-height:38px;max-height:110px;border-radius:19px;background:var(--input-bg);color:var(--input-text);
+  border:none;padding:9px 14px;resize:none;font-size:16px;line-height:1.4;
+}
+#sendBtn{width:38px;height:38px;border-radius:50%;background:var(--btn);color:var(--btn-text);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#sendBtn svg{width:20px;height:20px;}
+#quotePreview{display:flex;align-items:center;gap:8px;padding:6px 14px;background:var(--input-bg);font-size:12.5px;color:var(--text-sub);border-top:1px solid var(--divider);}
+#quotePreview .qp-text{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ===== 朋友圈 ===== */
+#pageMoments{background:#fff;}
+.moments-cover{
+  position:relative;height:260px;
+  background-size:cover;background-position:center;
+  background-color:#e0e0e0;
+}
+.moments-cover .edit-cover{
+  position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;
+  background:rgba(0,0,0,.3);color:#fff;display:flex;align-items:center;justify-content:center;
+}
+.moments-user{
+  position:relative;display:flex;align-items:flex-end;gap:14px;
+  padding:0 16px 16px;margin-top:-40px;
+}
+.moments-user-avatar{
+  width:80px;height:80px;border-radius:12px;border:3px solid #fff;background:var(--input-bg);
+  overflow:hidden;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.1);cursor:pointer;
+}
+.moments-user-avatar img{width:100%;height:100%;object-fit:cover;}
+.moments-user-info{flex:1;padding-bottom:6px;}
+.moments-user-name{font-size:18px;font-weight:700;color:#111;}
+.moments-user-sign{font-size:13px;color:#666;margin-top:2px;}
+
+.moments-feed{padding:16px;background:#fff;flex:1;overflow-y:auto;}
+.moment-item{display:flex;gap:12px;margin-bottom:24px;}
+.moment-avatar{width:44px;height:44px;border-radius:8px;background:var(--input-bg);overflow:hidden;flex-shrink:0;}
+.moment-avatar img{width:100%;height:100%;object-fit:cover;}
+.moment-content{flex:1;min-width:0;}
+.moment-name{font-weight:600;font-size:14.5px;color:#3e5c76;margin-bottom:4px;}
+.moment-text{font-size:14.5px;color:#111;margin-bottom:8px;white-space:pre-wrap;line-height:1.5;}
+.moment-imgs{display:grid;gap:6px;margin-bottom:8px;}
+.moment-imgs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;background:#eee;}
+.moment-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#999;}
+.moment-actions{display:flex;gap:12px;align-items:center;}
+.moment-btn{display:flex;align-items:center;gap:4px;background:#f4f4f4;padding:4px 10px;border-radius:4px;color:#576b95;font-size:12.5px;cursor:pointer;}
+.moment-btn svg{width:14px;height:14px;}
+.moment-comments{background:#f7f7f7;border-radius:6px;padding:8px;margin-top:8px;font-size:13px;}
+.moment-comment-item{margin-bottom:4px;line-height:1.4;}
+.moment-comment-item:last-child{margin-bottom:0;}
+.moment-comment-name{color:#3e5c76;font-weight:600;}
+
+/* ===== 我的主页 ===== */
+#pageProfile{background:#fff;overflow-y:auto;}
+.profile-cover{
+  position:relative;height:240px;background-size:cover;background-position:center;background-color:#e0e0e0;
+}
+.profile-user{
+  position:relative;display:flex;align-items:flex-end;gap:14px;
+  padding:0 16px 16px;margin-top:-40px;border-bottom:1px solid #eee;
+}
+.profile-user-avatar{
+  width:80px;height:80px;border-radius:12px;border:3px solid #fff;background:var(--input-bg);
+  overflow:hidden;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.profile-user-avatar img{width:100%;height:100%;object-fit:cover;}
+.profile-user-info{flex:1;padding-bottom:6px;}
+.profile-user-name{font-size:20px;font-weight:700;color:#111;}
+.profile-user-sign{font-size:13px;color:#666;margin-top:4px;}
+.profile-edit-row{
+  display:flex;justify-content:space-between;align-items:center;padding:16px;
+  border-bottom:1px solid #eee;font-size:15px;cursor:pointer;
+}
+.profile-edit-row span{color:#111;}
+.profile-edit-row .val{color:#999;font-size:14px;}
+
+/* ===== 字卡库 ===== */
+#pageLib{background:var(--bg);}
+#libTabs{display:flex;background:var(--nav-bg);border-bottom:1px solid var(--divider);padding:0 8px;}
+.lib-tab{flex:1;padding:12px 0;text-align:center;font-size:14px;color:var(--text-sub);border-bottom:2px solid transparent;}
+.lib-tab.active{color:var(--text);border-bottom-color:var(--btn);font-weight:600;}
+#libBody{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;padding-bottom:40px;}
+.lib-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;}
+.lib-btn{padding:6px 12px;border-radius:9px;background:var(--input-bg);color:var(--text);font-size:13px;}
+.lib-btn:active{opacity:.7;}
+.lib-btn.primary{background:var(--btn);color:var(--btn-text);}
+.lib-count{font-size:12px;color:var(--text-sub);margin-left:auto;}
+.lib-item{display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--panel);border-radius:10px;margin-bottom:6px;}
+.lib-item .li-text{flex:1;font-size:14px;word-break:break-word;}
+.lib-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--btn);}
+.lib-del{width:26px;height:26px;border-radius:50%;background:var(--input-bg);color:var(--text-sub);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.lib-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--input-bg);}
+.lib-empty{text-align:center;color:var(--text-sub);padding:40px;font-size:13.5px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--divider);gap:12px;}
+.setting-label{font-size:14px;}
+.setting-sub{font-size:11.5px;color:var(--text-sub);margin-top:2px;}
+.switch{width:46px;height:26px;border-radius:13px;background:var(--input-bg);position:relative;transition:.2s;flex-shrink:0;border:1px solid var(--divider);}
+.switch.on{background:var(--btn);border-color:var(--btn);}
+.switch::after{content:"";position:absolute;left:2px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.switch.on::after{left:22px;}
+.setting-num{width:66px;padding:6px 8px;border-radius:8px;border:1px solid var(--divider);background:var(--input-bg);color:var(--input-text);text-align:center;font-size:16px;}
+.setting-slider{flex:1;accent-color:var(--btn);}
+.setting-val{font-size:13px;color:var(--text-sub);min-width:44px;text-align:right;}
+
+.default-card-block{background:var(--panel);border:1px solid var(--divider);border-radius:14px;padding:12px;margin-bottom:14px;}
+.default-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.default-card-title{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:8px;}
+.default-card-badge{background:var(--btn);color:var(--btn-text);font-size:11px;border-radius:9px;padding:1px 8px;}
+.default-card-sub{font-size:12px;color:var(--text-sub);margin-bottom:10px;line-height:1.5;}
+.default-card-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.default-card-list{max-height:260px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--divider);}
+.default-card-item{padding:7px 4px;font-size:13.5px;color:var(--text-sub);border-bottom:1px solid var(--divider);}
+.default-card-item:last-child{border-bottom:none;}
+.default-card-more{text-align:center;padding:10px;font-size:13px;color:var(--btn);}
+
+/* ===== 弹窗 ===== */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{background:var(--panel);color:var(--text);border-radius:18px;width:100%;max-width:420px;max-height:86vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px;animation:pop .18s;}
+@keyframes pop{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal h3{margin:0 0 14px;font-size:17px;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;}
+.modal-actions button{flex:1;padding:11px;border-radius:11px;font-size:15px;background:var(--input-bg);color:var(--text);}
+.modal-actions button.primary{background:var(--btn);color:var(--btn-text);}
+.modal-input{width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--divider);background:var(--input-bg);color:var(--input-text);margin-bottom:10px;}
+.modal-label{font-size:13px;color:var(--text-sub);margin:10px 0 6px;}
+.profile-avatar-edit{width:84px;height:84px;border-radius:50%;margin:0 auto 14px;background:var(--input-bg);border:1px solid var(--avatar-border);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;}
+.profile-avatar-edit img{width:100%;height:100%;object-fit:cover;}
+.profile-avatar-edit .ph{font-size:30px;color:var(--text-sub);}
+.avatar-hint{text-align:center;font-size:12px;color:var(--text-sub);margin-bottom:12px;}
+
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.theme-swatch{border-radius:12px;padding:10px 6px;text-align:center;font-size:12px;border:2px solid transparent;cursor:pointer;}
+.theme-swatch.active{border-color:var(--btn);}
+.theme-dot{width:30px;height:30px;border-radius:50%;margin:0 auto 6px;border:1px solid rgba(0,0,0,.1);}
+.shape-row{display:flex;gap:8px;flex-wrap:wrap;}
+.shape-opt{padding:8px 14px;border-radius:10px;background:var(--input-bg);font-size:13px;border:2px solid transparent;}
+.shape-opt.active{border-color:var(--btn);}
+.font-row{display:flex;flex-wrap:wrap;gap:8px;}
+.font-opt{padding:9px 14px;border-radius:10px;background:var(--input-bg);font-size:13.5px;border:2px solid transparent;line-height:1.3;}
+.font-opt.active{border-color:var(--btn);}
+.font-opt .fo-sample{display:block;font-size:11px;color:var(--text-sub);margin-top:2px;}
+
+.sticker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.sticker-grid img{width:100%;aspect-ratio:1;object-fit:contain;background:var(--input-bg);border-radius:10px;padding:4px;}
+
+/* 塔罗 */
+#tarotLayer{position:fixed;inset:0;z-index:200;background:var(--tarot-bg);color:var(--tarot-text);display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));}
+.tarot-close{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;width:34px;height:34px;border-radius:50%;background:rgba(128,128,128,.15);display:flex;align-items:center;justify-content:center;z-index:5;}
+.tarot-title{text-align:center;font-size:20px;font-weight:700;color:var(--tarot-accent);margin:16px 0 6px;}
+.tarot-sub{text-align:center;font-size:13px;color:var(--tarot-text);opacity:.7;margin-bottom:20px;}
+.tarot-opts{display:flex;gap:12px;justify-content:center;margin-bottom:18px;}
+.tarot-opt{padding:12px 20px;border-radius:12px;background:var(--tarot-card);border:2px solid transparent;font-size:14px;color:var(--tarot-text);}
+.tarot-opt.active{border-color:var(--tarot-gold);}
+.tarot-input{width:100%;max-width:340px;margin:0 auto 18px;display:block;padding:12px;border-radius:12px;border:1px solid var(--tarot-gold);background:var(--tarot-card);color:var(--tarot-text);}
+.tarot-btn{display:block;margin:0 auto;padding:13px 34px;border-radius:14px;background:var(--tarot-accent);color:#fff;font-size:15px;font-weight:600;}
+.tarot-cards{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+.tarot-card-wrap{perspective:800px;width:110px;height:170px;cursor:pointer;}
+.tarot-card-inner{position:relative;width:100%;height:100%;transition:transform .7s;transform-style:preserve-3d;}
+.tarot-card-wrap.flipped .tarot-card-inner{transform:rotateY(180deg);}
+.tarot-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.tarot-back{background:linear-gradient(135deg,var(--tarot-accent),var(--tarot-gold));border:2px solid var(--tarot-gold);}
+.tarot-front{background:var(--tarot-card);border:2px solid var(--tarot-gold);transform:rotateY(180deg);flex-direction:column;padding:6px;text-align:center;}
+.tarot-front svg{width:60px;height:60px;}
+.tarot-front .tn{font-size:11px;font-weight:700;color:var(--tarot-text);margin-top:4px;}
+.tarot-front .tr{font-size:10px;color:var(--tarot-accent);}
+.tarot-results{margin-top:20px;}
+.tarot-result-item{background:var(--tarot-card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--tarot-gold);}
+.tarot-result-item .rt{font-weight:700;color:var(--tarot-accent);font-size:15px;}
+.tarot-result-item .rp{font-size:12px;color:var(--tarot-gold);margin-bottom:6px;}
+.tarot-result-item .rd{font-size:13px;line-height:1.6;color:var(--tarot-text);}
+
+/* 通话层 */
+#callLayer{position:fixed;inset:0;z-index:210;background:linear-gradient(160deg,#2a2a35,#1a1a22);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;}
+#callLayer .call-avatar{width:110px;height:110px;border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,.3);margin-bottom:18px;display:flex;align-items:center;justify-content:center;background:#3a3a48;}
+#callLayer .call-avatar img{width:100%;height:100%;object-fit:cover;}
+#callLayer .call-name{font-size:20px;font-weight:600;margin-bottom:8px;}
+#callLayer .call-status{font-size:14px;opacity:.7;margin-bottom:30px;}
+.call-btns{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;}
+.call-btn{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-direction:column;gap:2px;}
+.call-btn.hang{background:#e05555;}
+.call-btn.mute{background:rgba(255,255,255,.18);}
+.call-btn.mini{background:rgba(255,255,255,.18);}
+#callMini{position:fixed;z-index:211;width:72px;height:72px;border-radius:12px;background:#2a2a35;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.35);touch-action:none;cursor:grab;border:2px solid rgba(255,255,255,.28);}
+#callMini:active{cursor:grabbing;}
+#callMini .cm-timer{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);white-space:nowrap;color:#fff;background:rgba(0,0,0,.55);padding:1px 7px;border-radius:6px;font-size:10px;}
+
+/* 信件 */
+#letterDetail .letter-paper{background:var(--panel);border-radius:10px;padding:18px 16px 18px 30px;position:relative;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+#letterDetail .letter-paper::before{content:"";position:absolute;left:16px;top:0;bottom:0;width:1px;background:var(--accent);opacity:.45;}
+.letter-lines{background-image:repeating-linear-gradient(transparent,transparent 27px,var(--divider) 27px,var(--divider) 28px);line-height:28px;font-size:14px;white-space:pre-wrap;word-break:break-word;min-height:60px;}
+.letter-stamp{position:absolute;top:10px;right:12px;width:44px;height:52px;border:1.5px dashed var(--accent);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:9px;transform:rotate(6deg);opacity:.8;}
+.letter-head{font-size:12px;color:var(--text-sub);margin-bottom:10px;}
+.letter-status-badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:9px;background:var(--input-bg);color:var(--text-sub);margin-top:8px;}
+.letter-item{background:var(--panel);border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.letter-item .li-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.letter-item .li-title{font-weight:600;font-size:14px;}
+.letter-item .li-preview{font-size:12.5px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.letter-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+#letterToast{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:300;background:var(--btn);color:var(--btn-text);padding:10px 18px;border-radius:14px;font-size:13.5px;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:slideDown .3s;}
+@keyframes slideDown{from{transform:translate(-50%,-20px);opacity:0;}to{transform:translate(-50%,0);opacity:1;}}
+
+/* 长按菜单 */
+#ctxMenu{position:fixed;z-index:250;background:var(--panel);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.2);overflow:hidden;min-width:130px;animation:pop .12s;}
+#ctxMenu button{display:flex;align-items:center;gap:9px;width:100%;padding:11px 16px;font-size:14px;text-align:left;color:var(--text);}
+#ctxMenu button:active{background:var(--input-bg);}
+
+/* 拍一拍面板 */
+#patPanel{position:fixed;left:0;right:0;bottom:0;z-index:220;background:var(--panel);border-top-left-radius:18px;border-top-right-radius:18px;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 24px rgba(0,0,0,.18);animation:slideUp .2s;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+#patPanel .pat-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+#patPanel .pat-title{font-weight:600;font-size:15px;}
+#patPanel .pat-close{width:30px;height:30px;border-radius:50%;background:var(--input-bg);color:var(--text-sub);display:flex;align-items:center;justify-content:center;}
+.pat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.pat-item{position:relative;padding:10px 12px;padding-right:32px;border-radius:11px;background:var(--input-bg);font-size:13.5px;line-height:1.35;text-align:left;}
+.pat-item:active{opacity:.75;}
+.pat-item .pat-del{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:var(--panel);color:var(--text-sub);display:flex;align-items:center;justify-content:center;font-size:12px;}
+.pat-add{grid-column:1 / -1;padding:11px;border-radius:11px;border:1px dashed var(--divider);color:var(--text-sub);font-size:13.5px;text-align:center;background:transparent;}
+
+@media(max-width:520px){
+  .top-avatar{width:42px;height:42px;}
+  .top-heart{width:48px;}
+  .func-btn{width:22px;height:22px;}
+  .func-btn svg{width:13px;height:13px;}
+  .func-strip{gap:4px;}
+  .top-name{max-width:52px;}
+}
+</style>
+</head>
+<body class="shape-tail">
+<div id="app">
+  <!-- 导航 -->
+  <div id="nav">
+    <button class="nav-back hidden" id="navBack" onclick="goBack()" aria-label="返回">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="nav-title" id="navTitle">主頁</div>
+    <div class="nav-account"><span id="navAccountName">訪客</span><div class="dot"></div></div>
+  </div>
+
+  <!-- 主頁 (Me) -->
+  <div class="page active" id="pageMe">
+    <div class="me-header" onclick="openProfile()">
+      <div class="me-avatar" id="meAvatar"><span class="ph">?</span></div>
+      <div class="me-info">
+        <div class="me-name" id="meName">我</div>
+        <div class="me-sign" id="meSign">這個人很懶，什麼都沒留下</div>
+      </div>
+    </div>
+    
+    <div class="me-menu">
+      <div class="me-item" onclick="openMoments()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span>朋友圈</span>
+      </div>
+      <div class="me-item" onclick="openWriteLetter()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>
+        <span>寫信</span>
+      </div>
+      <div class="me-item" onclick="openInbox()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H8l-4 4z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="12" x2="13" y2="12"/></svg>
+        <span>收件匣</span>
+        <span class="badge hidden" id="inboxBadge">0</span>
+      </div>
+      <div class="me-item" onclick="openLib()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+        <span>字卡庫與設定</span>
+      </div>
+    </div>
+
+    <div class="me-btn-start" onclick="enterChat()">進入聊天室</div>
+  </div>
+
+  <!-- 聊天页 -->
+  <div class="page" id="pageChat">
+    <div id="chatTop">
+      <div class="top-col" onclick="openEditDream()">
+        <div class="top-avatar" id="topDreamAvatar"><span class="ph">?</span></div>
+        <div class="top-name" id="topDreamName">夢角</div>
+      </div>
+      <svg class="top-heart" width="56" height="46" viewBox="0 0 56 46" fill="none" stroke="#c98b8b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="0 23 10 23 15 10 21 36 27 18 31 23 56 23"/>
+      </svg>
+      <div class="top-col" onclick="openProfile()">
+        <div class="top-avatar" id="topUserAvatar"><span class="ph">我</span></div>
+        <div class="top-name" id="topUserName">我</div>
+      </div>
+      <div class="func-strip">
+        <button class="func-btn" title="朋友圈" onclick="openMoments()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg></button>
+        <button class="func-btn" title="塔羅" onclick="openTarot()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="3" width="12" height="18" rx="2"/><circle cx="12" cy="12" r="2"/></svg></button>
+        <button class="func-btn" title="主題與氣泡" onclick="openTheme()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="13" height="13" rx="2"/><rect x="8" y="8" width="13" height="13" rx="2"/></svg></button>
+        <button class="func-btn" title="字卡庫" onclick="openLib()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg></button>
+        <button class="func-btn" title="資料管理" onclick="openDataManage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></button>
+        <button class="func-btn" title="問卷" onclick="openSurveyBuilder()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h9l4 4v14H6z"/><line x1="9" y1="11" x2="16" y2="11"/><line x1="9" y1="15" x2="14" y2="15"/></svg></button>
+      </div>
+    </div>
+    <div id="msgList"></div>
+    <div id="quotePreview" class="hidden">
+      <span id="qpText" class="qp-text"></span>
+      <button onclick="cancelQuote()" style="width:22px;height:22px;border-radius:50%;background:var(--panel);color:var(--text-sub);display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div id="inputBar">
+      <button class="ib-btn" title="拍一拍" onclick="openPatPanel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V4a1.5 1.5 0 0 1 3 0v6"/><path d="M12 10V3a1.5 1.5 0 0 1 3 0v7"/><path d="M15 10V5a1.5 1.5 0 0 1 3 0v9a6 6 0 0 1-6 6h-1a7 7 0 0 1-7-7v-3a1.5 1.5 0 0 1 3 0v2"/><path d="M9 10V7a1.5 1.5 0 0 0-3 0v7"/></svg></button>
+      <button class="ib-btn" title="讓夢角繼續" onclick="nudgeDream()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+      <button class="ib-btn" title="發圖片" onclick="pickChatImage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button class="ib-btn" title="發起通話" onclick="startCall()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-3 2a13 13 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></button>
+      <button class="ib-btn" title="表情包" onclick="openStickerPicker()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+      <textarea id="msgInput" rows="1" placeholder="輸入訊息..."></textarea>
+      <button id="sendBtn" onclick="sendText()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+
+  <!-- 朋友圈页 -->
+  <div class="page" id="pageMoments">
+    <div class="moments-cover" id="momentsCover">
+      <button class="edit-cover" onclick="pickCover('cover')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+    </div>
+    <div class="moments-user">
+      <div class="moments-user-avatar" id="momentsUserAvatar" onclick="openProfile()"></div>
+      <div class="moments-user-info">
+        <div class="moments-user-name" id="momentsUserName"></div>
+        <div class="moments-user-sign" id="momentsUserSign"></div>
+      </div>
+    </div>
+    <div class="moments-feed" id="momentsFeed"></div>
+  </div>
+
+  <!-- 我的主页 -->
+  <div class="page" id="pageProfile">
+    <div class="profile-cover" id="profileCover" onclick="pickCover('cover')"></div>
+    <div class="profile-user">
+      <div class="profile-user-avatar" id="profileAvatar" onclick="pickCover('avatar')"></div>
+      <div class="profile-user-info">
+        <div class="profile-user-name" id="profileName"></div>
+        <div class="profile-user-sign" id="profileSign"></div>
+      </div>
+    </div>
+    <div class="profile-edit-row" onclick="editProfileName()"><span>名字</span><span class="val" id="profileNameVal"></span></div>
+    <div class="profile-edit-row" onclick="editProfileSign()"><span>簽名</span><span class="val" id="profileSignVal"></span></div>
+  </div>
+
+  <!-- 字卡库页 -->
+  <div class="page" id="pageLib">
+    <div id="libTabs">
+      <div class="lib-tab active" onclick="switchLibTab('cards')">字卡</div>
+      <div class="lib-tab" onclick="switchLibTab('kaomoji')">顏文字</div>
+      <div class="lib-tab" onclick="switchLibTab('stickers')">表情包</div>
+      <div class="lib-tab" onclick="switchLibTab('settings')">聊天設定</div>
+    </div>
+    <div id="libBody"></div>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div id="tarotRoot"></div>
+<div id="callRoot"></div>
+<div id="toastRoot"></div>
+
+<input type="file" id="hiddenFile" class="hidden">
+
+<script>
+/* ================= 常量与状态 ================= */
+const ACCOUNT = '__guest__';
+const K_PROFILE = `dream_chat_profile_${ACCOUNT}`;
+const K_LETTERS = `dream_chat_letters_${ACCOUNT}`;
+const K_INITED = `dream_chat_inited_${ACCOUNT}`;
+const dataKey = () => `dream_chat_data_${ACCOUNT}::__default__`;
+const IDB_NAME = 'dream_chat_images', IDB_STORE = 'images';
+const idbKey = (key) => `${ACCOUNT}::__default__::${key}`;
+const PROFILE_AVATAR_KEY = idbKey('profile_avatar');
+const PROFILE_COVER_KEY = idbKey('profile_cover');
+
+const DEFAULT_PAT_CARDS = [
+  '拍了拍你的頭','拍了拍你的肩膀','輕輕拍了拍你','拍了拍你的臉頰','戳了戳你','拍了拍你的背','抱了抱你'
+];
+
+const THEMES = [
+  {id:'wechat',name:'淺綠色',vars:{'--bg':'#f1f4f0','--panel':'#ffffff','--text':'#2f332f','--text-sub':'#8f968f','--user-bubble':'#95ec69','--user-text':'#1f2a1a','--dream-bubble':'#ffffff','--dream-text':'#2f332f','--btn':'#4f9a4f','--btn-text':'#fff','--input-bg':'#eef1ed','--input-text':'#2f332f','--avatar-border':'#dfe4dd','--typing-bg':'#eef1ed','--typing-text':'#8f968f','--nav-bg':'#f7faf6','--divider':'#e4e9e2','--accent':'#4f9a4f','--tarot-bg':'#e9efe6','--tarot-card':'#ffffff','--tarot-accent':'#4f9a4f','--tarot-gold':'#c9a35c','--tarot-text':'#2f332f'}},
+  {id:'deepgreen',name:'深綠色',vars:{'--bg':'#1d2b22','--panel':'#263829','--text':'#dce8dc','--text-sub':'#8aa08a','--user-bubble':'#3f6b47','--user-text':'#eef6ee','--dream-bubble':'#2c3f2f','--dream-text':'#dce8dc','--btn':'#5c9a63','--btn-text':'#fff','--input-bg':'#2c3f2f','--input-text':'#dce8dc','--avatar-border':'#3a5040','--typing-bg':'#2c3f2f','--typing-text':'#8aa08a','--nav-bg':'#223126','--divider':'#35473a','--accent':'#6fbf73','--tarot-bg':'#1a2620','--tarot-card':'#263829','--tarot-accent':'#5c9a63','--tarot-gold':'#c9a35c','--tarot-text':'#dce8dc'}},
+  {id:'matcha',name:'抹茶綠色',vars:{'--bg':'#f2f5ea','--panel':'#ffffff','--text':'#33402e','--text-sub':'#8a9683','--user-bubble':'#c5d9a8','--user-text':'#2f3a28','--dream-bubble':'#ffffff','--dream-text':'#33402e','--btn':'#7a9a5e','--btn-text':'#fff','--input-bg':'#e8eddd','--input-text':'#33402e','--avatar-border':'#d5dfc8','--typing-bg':'#e8eddd','--typing-text':'#8a9683','--nav-bg':'#fbfcf7','--divider':'#dde5d2','--accent':'#7a9a5e','--tarot-bg':'#eaf0e0','--tarot-card':'#fbfcf7','--tarot-accent':'#7a9a5e','--tarot-gold':'#a8894e','--tarot-text':'#33402e'}},
+  {id:'pink',name:'淡粉紅色',vars:{'--bg':'#fdf0f2','--panel':'#ffffff','--text':'#4a3238','--text-sub':'#a88890','--user-bubble':'#f5c4cc','--user-text':'#5a2f38','--dream-bubble':'#ffffff','--dream-text':'#4a3238','--btn':'#d98a9a','--btn-text':'#fff','--input-bg':'#f8e2e6','--input-text':'#4a3238','--avatar-border':'#edd5da','--typing-bg':'#f8e2e6','--typing-text':'#a88890','--nav-bg':'#fff8f9','--divider':'#f0dde0','--accent':'#d98a9a','--tarot-bg':'#fbe8ec','--tarot-card':'#fff8f9','--tarot-accent':'#d98a9a','--tarot-gold':'#c9a35c','--tarot-text':'#4a3238'}},
+  {id:'sunset',name:'夕陽橙黃色',vars:{'--bg':'#fdf3e6','--panel':'#ffffff','--text':'#4a3a28','--text-sub':'#a89078','--user-bubble':'#f5d4a0','--user-text':'#4a3418','--dream-bubble':'#ffffff','--dream-text':'#4a3a28','--btn':'#d9954a','--btn-text':'#fff','--input-bg':'#f8e8d0','--input-text':'#4a3a28','--avatar-border':'#eddcc5','--typing-bg':'#f8e8d0','--typing-text':'#a89078','--nav-bg':'#fffaf2','--divider':'#f0e2cc','--accent':'#d9954a','--tarot-bg':'#f7e6cc','--tarot-card':'#fffaf2','--tarot-accent':'#d9954a','--tarot-gold':'#b88a4a','--tarot-text':'#4a3a28'}},
+  {id:'deepsea',name:'深海色',vars:{'--bg':'#1a2632','--panel':'#22303e','--text':'#d8e4ec','--text-sub':'#7a8e9e','--user-bubble':'#2f5a6e','--user-text':'#e0f0f8','--dream-bubble':'#2a3846','--dream-text':'#d8e4ec','--btn':'#4a8aa8','--btn-text':'#fff','--input-bg':'#2a3846','--input-text':'#d8e4ec','--avatar-border':'#35485a','--typing-bg':'#2a3846','--typing-text':'#7a8e9e','--nav-bg':'#1e2a36','--divider':'#2e4050','--accent':'#4a8aa8','--tarot-bg':'#16202a','--tarot-card':'#22303e','--tarot-accent':'#4a8aa8','--tarot-gold':'#c9a35c','--tarot-text':'#d8e4ec'}},
+  {id:'purple',name:'淡紫色',vars:{'--bg':'#f4f0fa','--panel':'#ffffff','--text':'#3a3248','--text-sub':'#948aa8','--user-bubble':'#d8c8f0','--user-text':'#3a2f5a','--dream-bubble':'#ffffff','--dream-text':'#3a3248','--btn':'#9a7ac8','--btn-text':'#fff','--input-bg':'#e8e0f5','--input-text':'#3a3248','--avatar-border':'#ddd5ec','--typing-bg':'#e8e0f5','--typing-text':'#948aa8','--nav-bg':'#fbf9ff','--divider':'#e4dcf0','--accent':'#9a7ac8','--tarot-bg':'#ede6f8','--tarot-card':'#fbf9ff','--tarot-accent':'#9a7ac8','--tarot-gold':'#c9a35c','--tarot-text':'#3a3248'}},
+  {id:'liquor',name:'烈酒紅色',vars:{'--bg':'#2a1518','--panel':'#3a1e22','--text':'#f0dcd8','--text-sub':'#a88080','--user-bubble':'#6e2a32','--user-text':'#f8e8e4','--dream-bubble':'#3e2024','--dream-text':'#f0dcd8','--btn':'#b84a52','--btn-text':'#fff','--input-bg':'#3e2024','--input-text':'#f0dcd8','--avatar-border':'#4e2a2e','--typing-bg':'#3e2024','--typing-text':'#a88080','--nav-bg':'#321a1e','--divider':'#4a262a','--accent':'#b84a52','--tarot-bg':'#241214','--tarot-card':'#3a1e22','--tarot-accent':'#b84a52','--tarot-gold':'#c9a35c','--tarot-text':'#f0dcd8'}},
+  {id:'glass',name:'朦朧玻璃色',vars:{'--bg':'#e8ecf0','--panel':'rgba(255,255,255,.75)','--text':'#3a4248','--text-sub':'#8a949a','--user-bubble':'rgba(160,200,220,.7)','--user-text':'#2a3840','--dream-bubble':'rgba(255,255,255,.8)','--dream-text':'#3a4248','--btn':'#7a9ab0','--btn-text':'#fff','--input-bg':'rgba(255,255,255,.6)','--input-text':'#3a4248','--avatar-border':'rgba(200,210,220,.8)','--typing-bg':'rgba(255,255,255,.6)','--typing-text':'#8a949a','--nav-bg':'rgba(255,255,255,.85)','--divider':'rgba(200,210,220,.6)','--accent':'#7a9ab0','--tarot-bg':'#dfe6ec','--tarot-card':'rgba(255,255,255,.85)','--tarot-accent':'#7a9ab0','--tarot-gold':'#c9a35c','--tarot-text':'#3a4248'}},
+  {id:'lightblue',name:'淺藍色',vars:{'--bg':'#eef4fa','--panel':'#ffffff','--text':'#2b3a48','--text-sub':'#8296a8','--user-bubble':'#b8dcf5','--user-text':'#1f3040','--dream-bubble':'#ffffff','--dream-text':'#2b3a48','--btn':'#5a95c8','--btn-text':'#fff','--input-bg':'#e4eef7','--input-text':'#2b3a48','--avatar-border':'#d5e2ee','--typing-bg':'#e4eef7','--typing-text':'#8296a8','--nav-bg':'#f6fafd','--divider':'#dce7f1','--accent':'#5a95c8','--tarot-bg':'#e4eef7','--tarot-card':'#ffffff','--tarot-accent':'#5a95c8','--tarot-gold':'#c9a35c','--tarot-text':'#2b3a48'}},
+  {id:'lightbrown',name:'淺棕色',vars:{'--bg':'#f6f1e9','--panel':'#ffffff','--text':'#463a2c','--text-sub':'#a08e78','--user-bubble':'#e8d6b8','--user-text':'#4a3a24','--dream-bubble':'#ffffff','--dream-text':'#463a2c','--btn':'#b08a5a','--btn-text':'#fff','--input-bg':'#f0e8da','--input-text':'#463a2c','--avatar-border':'#e4d8c5','--typing-bg':'#f0e8da','--typing-text':'#a08e78','--nav-bg':'#fbf7f0','--divider':'#eae0d0','--accent':'#b08a5a','--tarot-bg':'#f0e8da','--tarot-card':'#fbf7f0','--tarot-accent':'#b08a5a','--tarot-gold':'#c9a35c','--tarot-text':'#463a2c'}},
+  {id:'lightorange',name:'淡橙色',vars:{'--bg':'#fdf4ec','--panel':'#ffffff','--text':'#4a382a','--text-sub':'#a89080','--user-bubble':'#ffd9b0','--user-text':'#4a3018','--dream-bubble':'#ffffff','--dream-text':'#4a382a','--btn':'#e89850','--btn-text':'#fff','--input-bg':'#fbe9d8','--input-text':'#4a382a','--avatar-border':'#f0ddc8','--typing-bg':'#fbe9d8','--typing-text':'#a89080','--nav-bg':'#fffaf5','--divider':'#f4e4d2','--accent':'#e89850','--tarot-bg':'#fbe9d8','--tarot-card':'#fffaf5','--tarot-accent':'#e89850','--tarot-gold':'#c9a35c','--tarot-text':'#4a382a'}},
+];
+const THEME_ALIAS = { cream:'wechat', blacksesame:'deepgreen' };
+
+const FONTS =
